@@ -8,7 +8,8 @@ import { WebSocketServer } from "ws";
 
 const PORT = process.env.PORT || 3000;
 const dir = path.dirname(fileURLToPath(import.meta.url));
-const html = fs.readFileSync(path.join(dir, "public", "index.html"));
+   const htmlPath = [path.join(dir, "public", "index.html"), path.join(dir, "index.html")].find(fs.existsSync);
+   const html = fs.readFileSync(htmlPath);
 
 // STUN is free; add a TURN relay via env vars so strict networks can connect.
 const iceServers = [{ urls: "stun:stun.l.google.com:19302" }];
