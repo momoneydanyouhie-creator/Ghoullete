@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ghoulette – Spin the Séance</title>
+<link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b0610;--panel:#170d22;--line:#3a2152;--text:#ece3f5;--dim:#9a86ad;--pump:#ff7a18;--glow:#ffb04a;--slime:#8bff3b;--blood:#e0223c;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% -10%,#3b1458 0,var(--bg) 60%) var(--bg);color:var(--text);font:16px/1.45 Georgia,'Times New Roman',serif;overflow-x:hidden}
+.fog{position:fixed;inset:0;pointer-events:none;background:radial-gradient(60% 30% at 20% 90%,rgba(160,120,200,.16),transparent),radial-gradient(50% 25% at 80% 100%,rgba(255,122,24,.12),transparent);animation:drift 14s ease-in-out infinite alternate}
+@keyframes drift{to{transform:translateX(5%) scale(1.06)}}
+.bat{position:fixed;top:-40px;font-size:26px;pointer-events:none;animation:fly 11s linear infinite;opacity:.7}
+@keyframes fly{0%{transform:translate(0,0) rotate(0)}50%{transform:translate(45vw,38vh) rotate(18deg)}100%{transform:translate(95vw,-10vh) rotate(-8deg);opacity:0}}
+header{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;position:relative;z-index:2}
+.logo{font-family:Creepster,'Chiller',fantasy;font-size:34px;letter-spacing:2px;color:var(--pump);text-shadow:0 0 14px var(--pump);animation:flick 5s infinite}
+.logo small{display:block;font:12px Georgia,serif;letter-spacing:3px;color:var(--dim);text-shadow:none;animation:none}
+@keyframes flick{0%,92%,96%,100%{opacity:1}94%{opacity:.55}98%{opacity:.8}}
+.souls{color:var(--slime);font-size:14px}
+main{position:relative;z-index:2;max-width:1000px;margin:0 auto;padding:0 16px 40px}
+.card{background:linear-gradient(160deg,var(--panel),#0f0817);border:1px solid var(--line);border-radius:18px;padding:28px;text-align:center;box-shadow:0 0 40px rgba(255,122,24,.08)}
+h1{font-family:Creepster,'Chiller',fantasy;font-weight:400;font-size:clamp(40px,9vw,72px);margin:6px 0;color:var(--glow);text-shadow:0 0 20px var(--pump)}
+p.sub{color:var(--dim);max-width:560px;margin:0 auto 18px}
+.pumpkin{font-size:64px;filter:drop-shadow(0 0 18px var(--pump));animation:bob 3s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-8px) rotate(3deg)}}
+input[type=text]{background:#0b0610;border:1px solid var(--line);color:var(--text);border-radius:10px;padding:11px 14px;font:inherit;width:100%;max-width:300px}
+button{font:inherit;cursor:pointer;border:0;border-radius:12px;padding:12px 20px;color:#1a0a00;background:linear-gradient(180deg,var(--glow),var(--pump));font-weight:bold;box-shadow:0 0 18px rgba(255,122,24,.4);transition:transform .15s}
+button:hover{transform:translateY(-2px) scale(1.03)}
+button.ghost{background:#26143a;color:var(--text);box-shadow:none;border:1px solid var(--line)}
+button.danger{background:#3a0f1a;color:#ff8a9b;box-shadow:none;border:1px solid #6b1a2b}
+.rules{text-align:left;max-width:540px;margin:18px auto;color:var(--dim);font-size:14px;padding-left:20px}
+.chk{display:flex;gap:8px;justify-content:center;align-items:center;margin:14px 0;color:var(--text);font-size:14px}
+#chat{display:none}
+.stage{display:grid;grid-template-columns:1fr 330px;gap:14px}
+@media(max-width:800px){.stage{grid-template-columns:1fr}}
+.vid{position:relative;background:#000;border:1px solid var(--line);border-radius:16px;overflow:hidden;aspect-ratio:4/3}
+video{width:100%;height:100%;object-fit:cover;display:block;background:#05020a}
+#me{position:absolute;right:10px;bottom:10px;width:28%;height:auto;aspect-ratio:4/3;border:2px solid var(--pump);border-radius:10px;transform:scaleX(-1);box-shadow:0 0 14px rgba(255,122,24,.5)}
+.status{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:radial-gradient(circle,rgba(30,10,45,.85),rgba(5,2,10,.95));text-align:center;padding:20px;transition:opacity .4s}
+.status.hide{opacity:0;pointer-events:none}
+#stxt{padding:4px 8px;font-size:15px}
+#game{position:relative;flex:1;width:100%;overflow:hidden;cursor:crosshair}
+.gh{position:absolute;font-size:40px;cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:manipulation;animation:pop .25s ease-out;filter:drop-shadow(0 0 8px rgba(255,176,74,.6))}
+@keyframes pop{from{transform:scale(0)}}
+#gscore{position:absolute;left:0;right:0;bottom:6px;color:var(--slime);font-size:14px;pointer-events:none}
+.side{display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:16px;min-height:260px;max-height:520px}
+#log{flex:1;overflow-y:auto;padding:12px;font-size:14px;display:flex;flex-direction:column;gap:6px}
+.m{padding:7px 10px;border-radius:10px;max-width:90%;word-wrap:break-word}
+.m.you{align-self:flex-end;background:#3b2108;border:1px solid #7a4413}
+.m.them{align-self:flex-start;background:#1f1230;border:1px solid var(--line)}
+.m.sys{align-self:center;color:var(--dim);font-style:italic;font-size:13px}
+#form{display:flex;gap:6px;padding:10px;border-top:1px solid var(--line)}
+#form input{flex:1;max-width:none}
+.bar{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;justify-content:center}
+.note{margin-top:14px;font-size:12px;color:var(--dim);text-align:center}
+#disco{position:fixed;inset:-50%;pointer-events:none;z-index:5;opacity:0;transition:opacity .8s;mix-blend-mode:screen;animation:spin 10s linear infinite;background:conic-gradient(rgba(255,0,140,.3),transparent 12%,rgba(0,210,255,.3) 28%,transparent 40%,rgba(170,255,0,.26) 55%,transparent 68%,rgba(255,130,0,.3) 84%,rgba(255,0,140,.3))}
+body.disco #disco{opacity:1}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ball{display:none;position:fixed;top:0;left:50%;font-size:58px;z-index:6;pointer-events:none;transform-origin:50% -30px;animation:swing 2.6s ease-in-out infinite alternate;filter:drop-shadow(0 0 16px #fff)}
+body.disco .ball{display:block}
+@keyframes swing{from{transform:translateX(-50%) rotate(-14deg)}to{transform:translateX(-50%) rotate(14deg)}}
+body.disco .vid,body.disco .side,body.disco .card{box-shadow:0 0 28px var(--pump)}
+@media(prefers-reduced-motion:reduce){#disco,.ball{animation:none}}
+</style>
+</head>
+<body>
+<div class="fog"></div><div id="disco"></div><div class="ball">🪩</div>
+<span class="bat" style="left:5%;animation-delay:0s">🦇</span><span class="bat" style="left:30%;animation-delay:4s;font-size:20px">🦇</span><span class="bat" style="left:12%;animation-delay:7.5s;font-size:32px">🦇</span>
+<header>
+  <div class="logo">Ghoulette<small>SPIN THE SÉANCE · HALLOWEEN EDITION</small></div>
+  <div class="souls" id="souls">👻 summoning…</div>
+</header>
+<main>
+  <section class="card" id="lobby">
+    <div class="pumpkin">🎃</div>
+    <h1>Dare to meet a stranger?</h1>
+    <p class="sub">Step into the crypt and Ghoulette will pair you with another wandering soul for a face-to-face séance. Skip them any time and spin again.</p>
+    <input type="text" id="nick" maxlength="16" placeholder="Pick a ghost name (optional)">
+    <ul class="rules">
+      <li>Adults only. You must be 18 or older.</li>
+      <li>Keep it spooky, not cruel: no harassment, nudity, hate or threats.</li>
+      <li>Never share your address, school, workplace or passwords.</li>
+      <li>Use Report to banish anyone who breaks the rules.</li>
+    </ul>
+    <label class="chk"><input type="checkbox" id="age"> I am 18+ and agree to the rules</label>
+    <button id="enter" disabled>🕯️ Enter the Crypt</button>
+    <p class="note" id="lobbyNote"></p>
+  </section>
+
+  <section id="chat">
+    <div class="stage">
+      <div class="vid">
+        <video id="them" autoplay playsinline></video>
+        <video id="me" autoplay playsinline muted></video>
+        <div class="status" id="status"><div id="stxt">Searching the void…</div><div id="game"><div id="gscore">Ghosts banished: 0</div></div></div>
+      </div>
+      <div class="side">
+        <div id="log"></div>
+        <form id="form"><input type="text" id="msg" maxlength="300" placeholder="Whisper something…" autocomplete="off"><button type="submit">Send</button></form>
+      </div>
+    </div>
+    <div class="bar">
+      <button id="next">💀 Skip (Esc)</button>
+      <button class="ghost" id="mic">🎙️ Mic on</button>
+      <button class="ghost" id="disco-btn">🪩 Disco</button>
+      <button class="ghost" id="cam">📷 Camera on</button>
+      <button class="danger" id="report">🚩 Report</button>
+      <button class="ghost" id="stop">🚪 Leave</button>
+    </div>
+    <p class="note" id="gnote">Loading hand tracking…</p>
+    <p class="note">Video travels directly between you and the stranger. Be kind, be careful, and happy haunting. 🕸️</p>
+  </section>
+</main>
+<script>
+(function(){
+  var $=function(i){return document.getElementById(i)};
+  var ws=null,pc=null,partner=null,local=null,st="idle",pend=[],nick="",timer=null,retry=0;
+  var ICE={iceServers:[{urls:"stun:stun.l.google.com:19302"}]};
+  var NAMES=["Wraith","Specter","Ghoul","Banshee","Phantom","Gremlin","Vampire","Mummy","Witch","Zombie"];
+
+  $("age").onchange=function(){$("enter").disabled=!this.checked};
+  function setStatus(txt,show){$("stxt").textContent=txt;$("status").classList.toggle("hide",show===false);if(show===false)stopGame();else startGame()}
+  function logMsg(txt,cls){var d=document.createElement("div");d.className="m "+cls;d.textContent=txt;$("log").appendChild(d);$("log").scrollTop=1e9}
+  function pres(s){st=s}
+  function send(t,d,n){if(ws&&ws.readyState===1)ws.send(JSON.stringify({t:t,d:d,n:n}))}
+
+  // connect to the matchmaking server (same host that served this page)
+  fetch("/ice").then(function(r){return r.json()}).then(function(j){if(j&&j.iceServers)ICE=j}).catch(function(){});
+  function connect(){
+    ws=new WebSocket((location.protocol==="https:"?"wss://":"ws://")+location.host);
+    ws.onopen=function(){retry=0;if(st==="search")send("search",null,nick)};
+    ws.onmessage=function(e){var m;try{m=JSON.parse(e.data)}catch(x){return}onSig(m)};
+    ws.onclose=function(){
+      $("souls").textContent="🕸️ reconnecting…";hangup();
+      setTimeout(connect,Math.min(1000*(++retry),8000));
+    };
+  }
+  connect();
+
+  $("enter").onclick=async function(){
+    if(!$("age").checked)return;
+    nick=($("nick").value.trim()||NAMES[Math.floor(Math.random()*NAMES.length)]+Math.floor(Math.random()*90+10)).slice(0,16);
+    try{local=await navigator.mediaDevices.getUserMedia({video:{width:640,height:480},audio:true})}
+    catch(e){$("lobbyNote").textContent="The spirits need your camera and mic. Allow access (or open this page in its own tab if the preview blocks it) and try again.";return}
+    $("me").srcObject=local;loadGestures();$("lobby").style.display="none";$("chat").style.display="block";
+    goSearch();
+  };
+
+  function goSearch(){hangup();$("log").textContent="";pres("search");setStatus("Searching the void… banish ghosts while you wait! 👻 +1  🎃 +3  🦇 −2");send("search",null,nick)}
+
+  function mkPC(){
+    pc=new RTCPeerConnection(ICE);
+    local.getTracks().forEach(function(t){pc.addTrack(t,local)});
+    pc.ontrack=function(e){$("them").srcObject=e.streams[0]};
+    pc.onicecandidate=function(e){if(e.candidate&&partner)send("ice",e.candidate.toJSON())};
+    var mine=pc;pc.onconnectionstatechange=function(){
+      if(pc!==mine)return;var s=pc.connectionState;
+      if(s==="connected"){clearTimeout(timer);setStatus("",false)}
+      if(s==="failed"||s==="closed"){if(partner){logMsg("The link snapped.","sys");send("skip");goSearch()}}
+    };
+    clearTimeout(timer);timer=setTimeout(function(){if(pc&&pc.connectionState!=="connected"){send("skip");goSearch()}},15000);
+  }
+
+  async function onSig(m){
+    try{
+      if(m.t==="count"){var n=m.n;$("souls").textContent="👻 "+n+" soul"+(n===1?"":"s")+" lurking";return}
+      if(m.t==="banned"){hangup();st="idle";setStatus("You have been banished for breaking the rules.");return}
+      if(m.t==="matched"){
+        hangup();partner=true;pres("busy");setStatus("A soul approaches…");mkPC();
+        logMsg("You are linked with "+String(m.n||"a stranger").slice(0,16)+". Say boo!","sys");
+        if(m.initiator){var o=await pc.createOffer();await pc.setLocalDescription(o);send("offer",pc.localDescription.toJSON())}
+      }else if(m.t==="offer"&&pc){
+        await pc.setRemoteDescription(m.d);await flush();
+        var a=await pc.createAnswer();await pc.setLocalDescription(a);send("answer",pc.localDescription.toJSON());
+      }else if(m.t==="answer"&&pc){await pc.setRemoteDescription(m.d);await flush()}
+      else if(m.t==="ice"){if(pc&&pc.remoteDescription)pc.addIceCandidate(m.d).catch(function(){});else pend.push(m.d)}
+      else if(m.t==="chat"&&partner){logMsg(String(m.d).slice(0,300),"them")}
+      else if(m.t==="bye"){if(!partner)return;logMsg("Your stranger left the crypt.","sys");goSearch()}
+    }catch(e){goSearch()}
+  }
+  async function flush(){while(pend.length)try{await pc.addIceCandidate(pend.shift())}catch(e){}}
+
+  function hangup(){
+    clearTimeout(timer);pend=[];
+    if(pc){var p=pc;pc=null;try{p.close()}catch(e){}}
+    $("them").srcObject=null;partner=null;
+  }
+  function leavePartner(){send("bye")}
+
+  var lastSkip=0;
+  $("next").onclick=function(){var t=Date.now();if(t-lastSkip<400)return;lastSkip=t;if(partner)send("skip");goSearch()};
+  $("report").onclick=function(){if(!partner)return;send("report");logMsg("Stranger reported and banished for this visit.","sys");goSearch()};
+  $("stop").onclick=function(){
+    leavePartner();hangup();pres("idle");
+    if(local){local.getTracks().forEach(function(t){t.stop()});local=null}
+    stopGame();disco(false);$("chat").style.display="none";$("lobby").style.display="block";
+  };
+  $("mic").onclick=function(){var t=local&&local.getAudioTracks()[0];if(!t)return;t.enabled=!t.enabled;this.textContent=t.enabled?"🎙️ Mic on":"🔇 Mic off"};
+  $("cam").onclick=function(){var t=local&&local.getVideoTracks()[0];if(!t)return;t.enabled=!t.enabled;this.textContent=t.enabled?"📷 Camera on":"🙈 Camera off"};
+  $("form").onsubmit=function(e){
+    e.preventDefault();var v=$("msg").value.trim();if(!v||!partner||!pc)return;
+    send("chat",v);logMsg(v,"you");$("msg").value="";
+  };
+  // waiting-room minigame: banish ghosts while the crypt searches
+  var gTimer=null,score=0;
+  function startGame(){if(!gTimer)gTimer=setInterval(spawn,700)}
+  function stopGame(){
+    clearInterval(gTimer);gTimer=null;
+    [].slice.call($("game").querySelectorAll(".gh")).forEach(function(e){e.remove()});
+  }
+  function spawn(){
+    var r=Math.random(),k=r<.12?["🎃",3]:r<.3?["🦇",-2]:["👻",1],e=document.createElement("span");
+    e.className="gh";e.textContent=k[0];
+    e.style.left=(Math.random()*78+4)+"%";e.style.top=(Math.random()*65+5)+"%";
+    e.onpointerdown=function(ev){
+      ev.preventDefault();e.onpointerdown=null;
+      score=Math.max(0,score+k[1]);$("gscore").textContent="Ghosts banished: "+score;
+      e.textContent=k[1]>0?"💥":"💢";setTimeout(function(){e.remove()},250);
+    };
+    $("game").appendChild(e);setTimeout(function(){e.remove()},1500);
+  }
+  // disco mode: smooth colour cycling (no strobing), triggered by a 👍 to your camera
+  var gr=null,gLoading=false,hold=0,discoOff=null,hueT=null,hue=0;
+  function disco(on,ms){
+    clearTimeout(discoOff);var b=document.body;
+    if(on){
+      if(!b.classList.contains("disco")){
+        b.classList.add("disco");
+        hueT=setInterval(function(){
+          hue=(hue+4)%360;var s=b.style;
+          s.setProperty("--pump","hsl("+hue+" 100% 55%)");s.setProperty("--glow","hsl("+((hue+40)%360)+" 100% 65%)");
+          s.setProperty("--slime","hsl("+((hue+180)%360)+" 100% 60%)");s.setProperty("--line","hsl("+hue+" 60% 32%)");
+        },100);
+      }
+      discoOff=setTimeout(function(){disco(false)},ms||12000);
+    }else{
+      clearInterval(hueT);hueT=null;b.classList.remove("disco");
+      ["--pump","--glow","--slime","--line"].forEach(function(k){b.style.removeProperty(k)});
+    }
+  }
+  $("disco-btn").onclick=function(){disco(!document.body.classList.contains("disco"),30000)};
+  async function loadGestures(){
+    if(gr||gLoading)return;gLoading=true;
+    try{
+      var V="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
+      var mod=await import(V+"/vision_bundle.mjs");
+      var fs=await mod.FilesetResolver.forVisionTasks(V+"/wasm");
+      var o=function(d){return{baseOptions:{modelAssetPath:"https://storage.googleapis.com/mediapipe-models/gesture_recognizer/gesture_recognizer/float16/1/gesture_recognizer.task",delegate:d},runningMode:"VIDEO",numHands:1}};
+      try{gr=await mod.GestureRecognizer.createFromOptions(fs,o("GPU"))}catch(e){gr=await mod.GestureRecognizer.createFromOptions(fs,o("CPU"))}
+      $("gnote").textContent="🪩 Give your camera a 👍 to start a disco party!";
+      setInterval(watch,150);
+    }catch(e){gLoading=false;$("gnote").textContent="Hand tracking couldn’t load. Use the Disco button instead."}
+  }
+  function watch(){
+    var v=$("me");if(!gr||!local||v.readyState<2||!v.videoWidth)return;
+    var r;try{r=gr.recognizeForVideo(v,performance.now())}catch(e){return}
+    var g=r&&r.gestures&&r.gestures[0]&&r.gestures[0][0];
+    if(g&&g.categoryName==="Thumb_Up"&&g.score>0.7){if(++hold>=3){hold=3;disco(true,12000)}}else hold=0;
+  }
+  // Omegle-style skip: Esc instantly drops the stranger and searches again
+  document.addEventListener("keydown",function(e){
+    if(e.key==="Escape"&&$("chat").style.display==="block"&&ws)$("next").click();
+  });
+  window.addEventListener("beforeunload",leavePartner);
+})();
+</script>
+</body>
+</html>
