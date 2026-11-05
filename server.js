@@ -8,8 +8,8 @@ import { WebSocketServer } from "ws";
 
 const PORT = process.env.PORT || 3000;
 const dir = path.dirname(fileURLToPath(import.meta.url));
-   const htmlPath = [path.join(dir, "public", "index.html"), path.join(dir, "index.html")].find(fs.existsSync);
-   const html = fs.readFileSync(htmlPath);
+const htmlPath = [path.join(dir, "public", "index.html"), path.join(dir, "index.html")].find(fs.existsSync);
+const html = fs.readFileSync(htmlPath);
 
 // STUN is free; add a TURN relay via env vars so strict networks can connect.
 const iceServers = [{ urls: "stun:stun.l.google.com:19302" }];
@@ -56,19 +56,35 @@ function leave(ws) {
 
 function pair(ws) {
   queue = queue.filter((c) => c.readyState === 1 && c !== ws);
+  ws.since = Date.now();
+  queue.push(ws);
+  match();
+}
+
+// Pair people who are waiting. A skipped stranger is avoided for 30s, unless
+// both have waited 8s+ (so two testers never get stuck forever).
+function match() {
   const now = Date.now();
-  const i = queue.findIndex((c) => !(ws.avoid.get(c.id) > now) && !(c.avoid.get(ws.id) > now));
-  if (i < 0) { queue.push(ws); return; }
-  const c = queue.splice(i, 1)[0];
-  ws.partner = c; c.partner = ws;
-  send(c, { t: "matched", initiator: true, n: ws.nick });
-  send(ws, { t: "matched", initiator: false, n: c.nick });
+  queue = queue.filter((c) => c.readyState === 1);
+  for (let i = 0; i < queue.length; i++) {
+    for (let j = i + 1; j < queue.length; j++) {
+      const a = queue[i], b = queue[j];
+      if (a.noMatch.has(b.id) || b.noMatch.has(a.id)) continue; // reported
+      const skipped = a.avoid.get(b.id) > now || b.avoid.get(a.id) > now;
+      if (skipped && now - Math.max(a.since, b.since) < 8000) continue;
+      queue = queue.filter((c) => c !== a && c !== b);
+      a.partner = b; b.partner = a;
+      send(a, { t: "matched", initiator: true, n: b.nick });
+      send(b, { t: "matched", initiator: false, n: a.nick });
+      return match();
+    }
+  }
 }
 
 function report(ws) {
   const p = ws.partner;
   if (!p) return;
-  ws.avoid.set(p.id, Date.now() + 60 * 60 * 1000);
+  ws.noMatch.add(p.id);
   let m = reports.get(p.ip);
   if (!m) reports.set(p.ip, (m = new Map()));
   m.set(ws.ip, Date.now());
@@ -87,7 +103,7 @@ wss.on("connection", (ws, req) => {
   const open = (perIp.get(ws.ip) || 0) + 1;
   if (open > 4) return ws.close();
   perIp.set(ws.ip, open);
-  Object.assign(ws, { id: nextId++, avoid: new Map(), partner: null, nick: "Stranger", win: 0, n: 0, alive: true });
+  Object.assign(ws, { id: nextId++, avoid: new Map(), noMatch: new Set(), since: 0, partner: null, nick: "Stranger", win: 0, n: 0, alive: true });
   send(ws, { t: "count", n: wss.clients.size });
 
   ws.on("pong", () => { ws.alive = true; });
@@ -129,6 +145,7 @@ setInterval(() => {
     ws.alive = false; ws.ping();
   }
 }, 30000);
+setInterval(match, 2000);
 setInterval(() => {
   const n = wss.clients.size;
   for (const ws of wss.clients) send(ws, { t: "count", n });
